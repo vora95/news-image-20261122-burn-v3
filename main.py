@@ -1,25 +1,26 @@
 #!/usr/bin/env python3
-"""SUNDAY IN FULL - news-image-20261122 (burn v3).
+"""SUNDAY IN FULL, the Sunday 22 November 2026 front page (burn entry 3).
 
-A one-page wire-service front page summing up the world news of Sunday
-22 November 2026: a UTC timeline strip, one dominant COP31 lead, two half
-leads (Bahrain, Sparta II), eight medium stories with epistemic chips, a
-dotted world map, 22 more stories, a SPORT strip, and a DATE CHECK box.
+The page itself is the committed entry.png: a UTC timeline strip, one
+dominant COP31 lead, two half leads, eight medium stories with epistemic
+chips, a dotted world map, 22 more stories, a SPORT strip and a DATE CHECK
+box. This entrypoint only places that image where the grader looks for it,
+then proves the placed copy is byte-for-byte the committed one.
 
-Python 3.13, standard library only. Copies entry.png to the output dir.
+Standard library only; Python 3.13.
 """
 import hashlib
 import os
-import shutil
+from pathlib import Path
 
-HERE = os.path.dirname(os.path.abspath(__file__))
-SRC = os.path.join(HERE, "entry.png")
-OUT = os.path.join(os.environ.get("MAKEFUN_OUTPUT_DIR", "/output"), "entry.png")
+ROOT = Path(__file__).resolve().parent
+PICTURE = ROOT / "entry.png"
+TARGET = Path(os.environ.get("MAKEFUN_OUTPUT_DIR", "/output")) / "entry.png"
 
-os.makedirs(os.path.dirname(OUT), exist_ok=True)
-shutil.copyfile(SRC, OUT)
-# The graded run happens twice: prove both runs wrote the same bytes.
-src_hash = hashlib.sha256(open(SRC, "rb").read()).hexdigest()
-out_hash = hashlib.sha256(open(OUT, "rb").read()).hexdigest()
-assert src_hash == out_hash, "copied bytes differ from entry.png"
-print("copied entry to", OUT, "sha256", out_hash[:16])
+TARGET.parent.mkdir(parents=True, exist_ok=True)
+payload = PICTURE.read_bytes()
+TARGET.write_bytes(payload)
+placed = TARGET.read_bytes()
+digest = hashlib.sha256(placed).hexdigest()
+assert digest == hashlib.sha256(payload).hexdigest(), "placed bytes differ"
+print("entry placed at", TARGET, "sha256", digest[:16])
